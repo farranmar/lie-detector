@@ -1,5 +1,5 @@
-#include "lie_detector.h";
-#include "sender.ino";
+// #include "lie_detector.h";
+// #include "lie_detector.ino";
 
 // to store all relevant fsm variables
 typedef struct {
@@ -125,7 +125,7 @@ bool testAllTests() {
   for (int i = 0; i < numTests; i++) {
     Serial.print("Running test ");
     Serial.println(i);
-    if (!testTransition(testStatesIn[i], testStatesOut[i], testInputs[i], testVarsIn[i], testVarsOut[i], true)) {
+    if (!testTransition(testStatesIn[i], testStatesOut[i], testVarsIn[i], testVarsOut[i], true)) {
       return false;
     }
     Serial.println();

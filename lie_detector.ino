@@ -1,4 +1,5 @@
 #include "lie_detector.h"
+#define SENDER;
 
 // what percent their heart rate/skin has to increase by to be considered a lie
 // should this be different for hr vs skin??
@@ -12,6 +13,7 @@ void setup() {
   Serial.begin(9600);
   while (!Serial);
 
+  #ifdef SENDER // sender setup
   // initialize fsm variables
   baseSkin = 0;
   baseHr = 0;
@@ -34,6 +36,14 @@ void setup() {
   // set up uart
   pinMode(uartOutPin, OUTPUT);
   digitalWrite(uartOutPin, HIGH);
+  #else // receiver setup
+  pinMode(GREEN_PIN, OUTPUT);
+  pinMode(RED_PIN, OUTPUT);
+
+  // set up uart
+  pinMode(uartInPin, INPUT);
+  attachInterrupt(uartInPin, uartReceive, CHANGE);
+  #endif
 
   // run tests if applicable
   #ifdef TESTING
@@ -50,9 +60,33 @@ void displayLeds(int greenLed, int redLed) {
 }
 
 void loop() {
+  #ifdef SENDER // sender loop
   static state CURRENT_STATE = sDISP_LIE_RESULT;
   CURRENT_STATE = updateFSM(CURRENT_STATE);
   delay(10);
+  #else // receiver loop
+  if(rBufStart != rBufEnd){
+      noInterrupts();
+      char received = rBuf[rBufStart];
+      rBufStart = (rBufStart + 1) % rsBufSize;
+      interrupts();
+      // Serial.print("received :");
+      // Serial.println(received);
+      if(received == 'r'){
+        digitalWrite(GREEN_PIN, LOW);
+        digitalWrite(RED_PIN, HIGH);
+      } else if(received == 'g'){
+        digitalWrite(GREEN_PIN, HIGH);
+        digitalWrite(RED_PIN, LOW);
+      } else if(received == 'b'){
+        digitalWrite(GREEN_PIN, HIGH);
+        digitalWrite(RED_PIN, HIGH);
+      } else if(received == 'n'){
+        digitalWrite(GREEN_PIN, LOW);
+        digitalWrite(RED_PIN, LOW);
+      }
+  }
+  #endif
 }
 
 // @TODO: set up WDT and pet on each fsm update

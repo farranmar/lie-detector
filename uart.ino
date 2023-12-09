@@ -1,4 +1,4 @@
-#include "lie_detector.h"
+// #include "lie_detector.h"
 
 /*
  * Manually wait for UART cycle
