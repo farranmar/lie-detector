@@ -13,6 +13,28 @@ void setup() {
   Serial.begin(9600);
   while (!Serial);
 
+  // set up wdt (for both sender and recevier)
+  // clear and enable WDT
+  NVIC_DisableIRQ(WDT_IRQn);
+  NVIC_ClearPendingIRQ(WDT_IRQn);
+  NVIC_SetPriority(WDT_IRQn, 0);
+  NVIC_EnableIRQ(WDT_IRQn);
+  // configure and enable WDT GCLK:
+  GCLK->GENDIV.reg = GCLK_GENDIV_DIV(4) | GCLK_GENDIV_ID(5);
+  while (GCLK->STATUS.bit.SYNCBUSY);
+  // set GCLK->GENCTRL.reg and GCLK->CLKCTRL.reg
+  GCLK->GENCTRL.reg = GCLK_GENCTRL_DIVSEL | GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC(3) | GCLK_GENCTRL_ID(5);
+  while (GCLK->STATUS.bit.SYNCBUSY);
+  GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN(5) | GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_ID(3);
+  // while (GCLK->STATUS.bit.SYNCBUSY);
+  // configure and enable WDT to have a period of 16384 (I think like 16 seconds at 1Hz?):
+  WDT->CONFIG.reg = WDT_CONFIG_PER(0xB);
+  WDT->EWCTRL.reg = WDT_EWCTRL_EWOFFSET_8;
+  WDT->CTRL.bit.ENABLE = 1;
+  while (WDT->STATUS.bit.SYNCBUSY);
+  WDT->INTENSET.bit.EW = 1;
+
+
   #ifdef SENDER // sender setup
   // initialize fsm variables
   baseSkin = 0;
@@ -46,8 +68,10 @@ void setup() {
   #endif
 
   // run tests if applicable
-  #ifdef TESTING
+  #if defined(TESTING) 
   testAllTests();
+  #elif defined(WDT_TESTING)
+  testWDT();
   #endif
 }
 
@@ -60,6 +84,8 @@ void displayLeds(int greenLed, int redLed) {
 }
 
 void loop() {
+  // pet wdt
+  WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
   #ifdef SENDER // sender loop
   static state CURRENT_STATE = sDISP_LIE_RESULT;
   CURRENT_STATE = updateFSM(CURRENT_STATE);
@@ -133,10 +159,11 @@ state updateFSM(state curState) {
       displayLeds(0,0);
       greenLed = 0;
       redLed = 0;
-      baseHr = cumulativeHr / qSampleCount;
-      threshHr = baseHr * (1 + thresh_percent);
-      baseSkin = cumulativeSkin / qSampleCount;
-      threshSkin = baseSkin * (1 + thresh_percent);
+      resetButtons();
+      baseHr = 1.0 * cumulativeHr / qSampleCount;
+      threshHr = baseHr * (1.0 + thresh_percent);
+      baseSkin = 1.0 * cumulativeSkin / qSampleCount;
+      threshSkin = baseSkin * (1.0 + thresh_percent);
       nextState = sDISP_LIE_RESULT;
     } else {
       nextState = sTEST_BASELINE;
@@ -154,8 +181,9 @@ state updateFSM(state curState) {
       displayLeds(0,0);
       greenLed = 0;
       redLed = 0;
-      testHr = cumulativeHr / qSampleCount;
-      testSkin = cumulativeSkin / qSampleCount;
+      resetButtons();
+      testHr = 1.0 * cumulativeHr / qSampleCount;
+      testSkin = 1.0 * cumulativeSkin / qSampleCount;
       nextState = sRECORD_LIE;
     } else {
       nextState = sTEST_LIE;
