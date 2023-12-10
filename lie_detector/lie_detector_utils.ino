@@ -47,8 +47,13 @@ void sampleData(){
 // @TODO: implement this
 void sampleData(){
     if (pulseSensor.sawStartOfBeat()) {
+      Serial.println("hey");
       cumulativeHr = pulseSensor.getBeatsPerMinute();
       cumulativeSkin = analogRead(SKIN_PIN);
+      Serial.print("hr: ");
+      Serial.println(cumulativeHr);
+      Serial.print("skin: ");
+      Serial.println(cumulativeSkin);
     }
 }
 #endif

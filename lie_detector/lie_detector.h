@@ -1,6 +1,6 @@
 #include <PulseSensorPlayground.h>
 // #define TESTING
-#define WDT_TESTING
+// #define WDT_TESTING
 
 // pins
 const int uartInPin = 5;
