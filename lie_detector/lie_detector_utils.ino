@@ -8,10 +8,12 @@ void resetButtons() {
 }
 
 void base_isr(){
+    Serial.println("base isr");
     baseBut = 1;
 }
 
 void q_isr(){
+    Serial.println("q isr");
     qBut = 1;
 }
 

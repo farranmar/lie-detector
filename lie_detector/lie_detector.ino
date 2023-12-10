@@ -54,6 +54,8 @@ void setup() {
   // pulseSensor.analogInput(HR_PIN);
   // pulseSensor.setSerial(Serial);
   // pulseSensor.setThreshold(THRESHOLD);
+  pinMode(BASE_BUT_PIN, INPUT);
+  pinMode(Q_BUT_PIN, INPUT);
 
   // Set up interrupts for buttons
   attachInterrupt(digitalPinToInterrupt(BASE_BUT_PIN), base_isr, RISING);
