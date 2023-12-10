@@ -1,5 +1,5 @@
 #include "lie_detector.h"
-#define SENDER;
+#define RECEIVER;
 
 // what percent their heart rate/skin has to increase by to be considered a lie
 // should this be different for hr vs skin??
