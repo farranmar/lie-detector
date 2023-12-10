@@ -10,7 +10,8 @@ static double baseSkin, baseHr, threshSkin, threshHr, testSkin, testHr;
 static int greenLed, redLed, qSampleCount;
 
 void setup() {
-  Serial.begin(9600);
+  // Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial);
 
   // set up wdt (for both sender and recevier)
@@ -50,6 +51,9 @@ void setup() {
   cumulativeSkin = 0;
   cumulativeHr = 0;
   qSampleCount = 0;
+  pulseSensor.analogInput(HR_PIN);
+  pulseSensor.setSerial(Serial);
+  pulseSensor.setThreshold(THRESHOLD);
 
   // Set up interrupts for buttons
   attachInterrupt(digitalPinToInterrupt(BASE_BUT_PIN), base_isr, RISING);
@@ -58,6 +62,15 @@ void setup() {
   // set up uart
   pinMode(uartOutPin, OUTPUT);
   digitalWrite(uartOutPin, HIGH);
+
+  if (!pulseSensor.begin()) {
+    for (;;) {
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(50); Serial.println("Pulse Sensor Initialization Failed!!!!!");
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(50);
+    }
+  }
   #else // receiver setup
   pinMode(GREEN_PIN, OUTPUT);
   pinMode(RED_PIN, OUTPUT);

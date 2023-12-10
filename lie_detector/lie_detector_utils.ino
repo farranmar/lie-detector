@@ -46,6 +46,9 @@ void sampleData(){
 // get the current heart rate and skin values and add them to the global variables: cumulativeHr, cumulativeSkin
 // @TODO: implement this
 void sampleData(){
-    
+    if (pulseSensor.sawStartOfBeat()) {
+      cumulativeHr = pulseSensor.getBeatsPerMinute();
+      cumulativeSkin = analogRead(SKIN_PIN);
+    }
 }
 #endif

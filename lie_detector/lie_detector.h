@@ -4,10 +4,13 @@
 // pins
 const int uartInPin = 5;
 const int uartOutPin = 3;
-const int GREEN_PIN = 4;
-const int RED_PIN = 5;
+const int GREEN_PIN = 0;
+const int RED_PIN = 1;
 const int BASE_BUT_PIN = 6;
 const int Q_BUT_PIN = 7;
+const int HR_PIN = A0;
+const int SKIN_PIN = A5;
+const int THRESHOLD = 450;
 
 // receive buffer for uart communication
 // we don't need a send buffer because we just send right away
@@ -28,6 +31,7 @@ typedef enum {
 
 // fsm variables that we want to be truly global
 int cumulativeHr, cumulativeSkin, baseBut, qBut;
+PulseSensorPlayground pulseSensor;
 
 // uart helper functions
 void uartReceive();
