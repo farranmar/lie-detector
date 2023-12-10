@@ -1,5 +1,5 @@
 #include "lie_detector.h"
-#define RECEIVER;
+#define SENDER;
 
 // what percent their heart rate/skin has to increase by to be considered a lie
 // should this be different for hr vs skin??
@@ -10,8 +10,8 @@ static double baseSkin, baseHr, threshSkin, threshHr, testSkin, testHr;
 static int greenLed, redLed, qSampleCount;
 
 void setup() {
-  // Serial.begin(9600);
-  Serial.begin(115200);
+  Serial.begin(9600);
+  // Serial.begin(115200);
   while (!Serial);
 
   // set up wdt (for both sender and recevier)
@@ -51,9 +51,9 @@ void setup() {
   cumulativeSkin = 0;
   cumulativeHr = 0;
   qSampleCount = 0;
-  pulseSensor.analogInput(HR_PIN);
-  pulseSensor.setSerial(Serial);
-  pulseSensor.setThreshold(THRESHOLD);
+  // pulseSensor.analogInput(HR_PIN);
+  // pulseSensor.setSerial(Serial);
+  // pulseSensor.setThreshold(THRESHOLD);
 
   // Set up interrupts for buttons
   attachInterrupt(digitalPinToInterrupt(BASE_BUT_PIN), base_isr, RISING);
@@ -63,14 +63,16 @@ void setup() {
   pinMode(uartOutPin, OUTPUT);
   digitalWrite(uartOutPin, HIGH);
 
-  if (!pulseSensor.begin()) {
-    for (;;) {
-      digitalWrite(LED_BUILTIN, LOW);
-      delay(50); Serial.println("Pulse Sensor Initialization Failed!!!!!");
-      digitalWrite(LED_BUILTIN, HIGH);
-      delay(50);
-    }
-  }
+  // error checking pulseSensor
+  // if (!pulseSensor.begin()) {
+  //   for (;;) {
+  //     digitalWrite(LED_BUILTIN, LOW);
+  //     delay(50);
+  //     Serial.println("Pulse Sensor Initialization Failed!!!!!");
+  //     digitalWrite(LED_BUILTIN, HIGH);
+  //     delay(50);
+  //   }
+  // }
   #else // receiver setup
   pinMode(GREEN_PIN, OUTPUT);
   pinMode(RED_PIN, OUTPUT);
@@ -101,6 +103,7 @@ void loop() {
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
   #ifdef SENDER // sender loop
   static state CURRENT_STATE = sDISP_LIE_RESULT;
+  Serial.println(qBut);
   CURRENT_STATE = updateFSM(CURRENT_STATE);
   delay(10);
   #else // receiver loop
@@ -134,9 +137,11 @@ state updateFSM(state curState) {
   switch(curState) {
   case sDISP_LIE_RESULT:
     if (baseBut == 0 and qBut == 0) { // transition 1-1
+      Serial.println("1-1");
       displayLeds(greenLed, redLed);
       nextState = sDISP_LIE_RESULT;
     } else if (baseBut == 1 and qBut == 0){ // transition 1-2
+      Serial.println("1-2");
       displayLeds(1,1);
       resetButtons();
       cumulativeHr = 0;
@@ -147,6 +152,7 @@ state updateFSM(state curState) {
       redLed = 1;
       nextState = sTEST_BASELINE;
     } else if(baseBut == 0 and qBut == 1 and baseHr != 0 and baseSkin != 0){ // transition 1-3
+      Serial.println("1-3");
       displayLeds(1,1);
       resetButtons();
       cumulativeHr = 0;
@@ -162,6 +168,7 @@ state updateFSM(state curState) {
     break;
   case sTEST_BASELINE:
     if (baseBut == 0 or qSampleCount <= 0) { // transition 2-2
+      Serial.println("2-2");
       displayLeds(1,1);
       greenLed = 1;
       redLed = 1;
@@ -169,6 +176,7 @@ state updateFSM(state curState) {
       qSampleCount += 1;
       nextState = sTEST_BASELINE;
     } else if (baseBut == 1 and qSampleCount > 0) { // transition 2-1
+      Serial.println("2-1");
       displayLeds(0,0);
       greenLed = 0;
       redLed = 0;
@@ -184,6 +192,7 @@ state updateFSM(state curState) {
     break;
   case sTEST_LIE:
     if(qBut == 0 or qSampleCount <= 0) { // transition 3-3
+      Serial.println("3-3");
       displayLeds(1,1);
       greenLed = 1;
       redLed = 1;
@@ -191,6 +200,7 @@ state updateFSM(state curState) {
       qSampleCount += 1;
       nextState = sTEST_LIE;
     } else if (qBut == 1 and qSampleCount > 0) { // transition 3-4
+      Serial.println("3-4");
       displayLeds(0,0);
       greenLed = 0;
       redLed = 0;
@@ -204,11 +214,13 @@ state updateFSM(state curState) {
     break;
   case sRECORD_LIE:
     if(testHr > threshHr and testSkin > threshSkin) { // transition 4-1 (a)
+      Serial.println("4-1 a");
       displayLeds(0,1);
       greenLed = 0;
       redLed = 1;
       nextState = sDISP_LIE_RESULT;
     } else { // transition 4-1 (b)
+      Serial.println("4-1 b");
       displayLeds(1,0);
       greenLed = 1;
       redLed = 0;
