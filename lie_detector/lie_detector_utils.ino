@@ -1,5 +1,3 @@
-// #include "lie_detector.h"
-
 void resetButtons() {
     noInterrupts();
     baseBut = 0;
@@ -8,45 +6,44 @@ void resetButtons() {
 }
 
 void base_isr(){
-    Serial.println("base isr");
-    digitalWrite(LED_BUILTIN, HIGH);
     baseBut = 1;
 }
 
 void q_isr(){
-    Serial.println("q isr");
-    digitalWrite(LED_BUILTIN, HIGH);
     qBut = 1;
 }
 
 #if defined(TESTING)
 // if testing, assume the heart rate is constantly 60 and the skin value is constantly 5
-void sampleData(){
+bool sampleData(){
     cumulativeHr += 60;
     cumulativeSkin += 5;
+    return true;
 }
 #elif defined(WDT_TESTING)
-// if testing wdt, delay for a long period (1 min) to simulate a system hang
+// if testing wdt, delay for a long period (30 sec) to simulate a system hang
 // wdt should trigger system shutdown after about 16 seconds
-void sampleData(){
+bool sampleData(){
     Serial.println("about to simulate hang (if a failure message does not print in one minute, wdt test passed)");
-    delay(60000);
+    delay(30000);
     Serial.println("wdt test failed :(");
 }
 #else
 // get the current heart rate and skin values and add them to the global variables: cumulativeHr, cumulativeSkin
-// @TODO: implement this
-void sampleData(){
-    if (pulseSensor.sawStartOfBeat()) {
-      Serial.println("hey");
-      cumulativeHr += pulseSensor.getBeatsPerMinute();
-      cumulativeSkin += analogRead(SKIN_PIN);
-      Serial.print("hr: ");
-      Serial.println(cumulativeHr);
-      Serial.print("skin: ");
-      Serial.println(cumulativeSkin);
+bool sampleData(){
+    if(pulseSensor.sawNewSample()){
+      if(--samplesUntilReport == (byte) 0){
+        samplesUntilReport = SAMPLES_PER_SERIAL_SAMPLE;
+        pulseSensor.outputSample();
+        int bpm = pulseSensor.getBeatsPerMinute();
+        int skin = analogRead(SKIN_PIN);
+        if(bpm != 0 and skin > 1){
+          cumulativeHr += bpm;
+          cumulativeSkin += skin;
+          return true;
+        }
+      }
     }
-    // cumulativeHr += random(50, 100);
-    // cumulativeSkin += random(5, 200);
+    return false;
 }
 #endif

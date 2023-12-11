@@ -1,8 +1,8 @@
 #include "lie_detector.h"
-// #define SENDER;
+#define SENDER;
 
 // what percent their heart rate/skin has to increase by to be considered a lie
-const double thresh_percent = 0.15;
+const double thresh_percent = 0.05;
 
 // FSM variables
 static double baseSkin, baseHr, threshSkin, threshHr, testSkin, testHr;
@@ -11,13 +11,10 @@ static char leds;
 
 void setup() {
   #ifdef SENDER
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial);
   #endif
   Serial1.begin(9600);
-
-  // for debuggin only, remove later
-  pinMode(LED_BUILTIN, OUTPUT);
 
   // set up wdt (for both sender and recevier)
   // clear and enable WDT
@@ -33,10 +30,8 @@ void setup() {
   GCLK->CLKCTRL.reg = GCLK_CLKCTRL_GEN(5) | GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_ID(3);
   // configure and enable WDT to have a period of 16384 (like 16 seconds or so at 1Hz?):
   WDT->CONFIG.reg = WDT_CONFIG_PER(0xB);
-  WDT->EWCTRL.reg = WDT_EWCTRL_EWOFFSET_8;
   WDT->CTRL.bit.ENABLE = 1;
   while (WDT->STATUS.bit.SYNCBUSY);
-  WDT->INTENSET.bit.EW = 1;
 
   #ifdef SENDER // sender setup
   // initialize fsm variables
@@ -55,6 +50,7 @@ void setup() {
   pulseSensor.analogInput(HR_PIN);
   pulseSensor.setSerial(Serial);
   pulseSensor.setThreshold(THRESHOLD);
+  samplesUntilReport = SAMPLES_PER_SERIAL_SAMPLE;
   pinMode(BASE_BUT_PIN, INPUT);
   pinMode(Q_BUT_PIN, INPUT);
 
@@ -95,18 +91,12 @@ void updateLeds(char newLeds) {
   }
 }
 
-void WDT_Handler() {
-  WDT->INTFLAG.reg = WDT_INTFLAG_EW;
-  Serial.println("WARNING WDT RESET IMMINENT");
-}
-
 void loop() {
     // pet wdt
     WDT->CLEAR.reg = WDT_CLEAR_CLEAR(0xA5);
     #ifdef SENDER // sender loop
     static state CURRENT_STATE = sDISP_LIE_RESULT;
     CURRENT_STATE = updateFSM(CURRENT_STATE);
-    // delay(10);
     #else // receiver loop
     int received = Serial1.read();
     if (received != -1){
@@ -142,8 +132,9 @@ state updateFSM(state curState) {
       resetButtons();
       cumulativeHr = 0;
       cumulativeSkin = 0;
-      sampleData();
-      qSampleCount = 1;
+      qSampleCount = 0;
+      bool sample = sampleData();
+      if(sample){ qSampleCount++; }
       nextState = sTEST_BASELINE;
     } else if(baseBut == 0 and qBut == 1 and baseHr != 0 and baseSkin != 0){ // transition 1-3
       Serial.println("1-3");
@@ -151,8 +142,9 @@ state updateFSM(state curState) {
       resetButtons();
       cumulativeHr = 0;
       cumulativeSkin = 0;
-      sampleData();
-      qSampleCount = 1;
+      qSampleCount = 0;
+      bool sample = sampleData();
+      if(sample){ qSampleCount++; }
       nextState = sTEST_LIE;
     } else {
       nextState = sDISP_LIE_RESULT;
@@ -161,8 +153,8 @@ state updateFSM(state curState) {
   case sTEST_BASELINE:
     if (baseBut == 0 or qSampleCount <= 0) { // transition 2-2
       updateLeds('b');
-      sampleData();
-      qSampleCount += 1;
+      bool sample = sampleData();
+      if(sample){ qSampleCount++; }
       nextState = sTEST_BASELINE;
     } else if (baseBut == 1 and qSampleCount > 0) { // transition 2-1
       Serial.println("2-1");
@@ -180,6 +172,12 @@ state updateFSM(state curState) {
       Serial.print(baseSkin);
       Serial.print(" and threshSkin is ");
       Serial.println(threshSkin);
+      Serial.print("cumulativeHr = ");
+      Serial.print(cumulativeHr);
+      Serial.print(", cumulativeSkin is ");
+      Serial.println(cumulativeSkin);
+      Serial.print("qSampleCount is ");
+      Serial.println(qSampleCount);
       nextState = sDISP_LIE_RESULT;
     } else {
       nextState = sTEST_BASELINE;
@@ -188,8 +186,8 @@ state updateFSM(state curState) {
   case sTEST_LIE:
     if(qBut == 0 or qSampleCount <= 0) { // transition 3-3
       updateLeds('b');
-      sampleData();
-      qSampleCount += 1;
+      bool sample = sampleData();
+      if(sample){ qSampleCount++; }
       nextState = sTEST_LIE;
     } else if (qBut == 1 and qSampleCount > 0) { // transition 3-4
       Serial.println("3-4");

@@ -1,6 +1,3 @@
-// #include "lie_detector.h";
-// #include "lie_detector.ino";
-
 // to store all relevant fsm variables
 typedef struct {
   double baseSkin;
@@ -113,9 +110,6 @@ const state_vars testVarsIn[11] = {{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0
 const state_vars testVarsOut[11] = {{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, {-1, -1, -1, -1, -1, -1, 'b', 1, 5, 60, 0, 0}, {-1, -1, -1, -1, -1, -1, 'b', 1, 5, 60, 0, 0}, {-1, -1, -1, -1, -1, -1, 'b', 7, 22, 184, -1, -1}, {-1, -1, -1, -1, -1, -1, 'b', 1, 5, 60, -1, -1}, {6, 70, 6.9, 80.5, -1, -1, 'n', -1, -1, -1, 0, 0}, {-1, -1, -1, -1, -1, -1, 'b', 4, 17, 102, -1, -1}, {-1, -1, -1, -1, -1, -1, 'b', 1, 5, 60, -1, -1}, {-1, -1, -1, -1, 3, 53, 'n', -1, -1, -1, -1, -1}, {-1, -1, -1, -1, -1, -1, 'r', -1, -1, -1, -1, -1}, {-1, -1, -1, -1, -1, -1, 'g', -1, -1, -1, -1, -1}};
 
 const int numTests = 11;
-
-
-
 
 // two doubles are equal if they differ by < 0.003
 int doubleEquals(double a, double b) {

@@ -27,13 +27,15 @@ typedef enum {
 // fsm variables that we want to be truly global
 int cumulativeHr, cumulativeSkin, baseBut, qBut;
 PulseSensorPlayground pulseSensor;
+byte samplesUntilReport;
+const byte SAMPLES_PER_SERIAL_SAMPLE = 10;
 
 // isrs
 void q_isr();
 void base_isr();
 
 // fsm helpers
-void sampleData();
+bool sampleData();
 void resetButtons();
 state updateFSM(state curState, long mils, int numButtons, int lastButton);
 
