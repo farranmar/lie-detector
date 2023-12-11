@@ -2,8 +2,7 @@
 // #define SENDER;
 
 // what percent their heart rate/skin has to increase by to be considered a lie
-// should this be different for hr vs skin??
-const double thresh_percent = 0.15;
+const double thresh_percent = 0.01;
 
 // FSM variables
 static double baseSkin, baseHr, threshSkin, threshHr, testSkin, testHr;
@@ -35,11 +34,6 @@ void setup() {
   while (WDT->STATUS.bit.SYNCBUSY);
   WDT->INTENSET.bit.EW = 1;
 
-  pinMode(uartInPin, INPUT);
-  pinMode(uartOutPin, OUTPUT);
-  digitalWrite(uartOutPin, HIGH);
-  // attachInterrupt(uartInPin, uartReceive, CHANGE);
-
   #ifdef SENDER // sender setup
   // initialize fsm variables
   baseSkin = 0;
@@ -64,10 +58,6 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(BASE_BUT_PIN), base_isr, RISING);
   attachInterrupt(digitalPinToInterrupt(Q_BUT_PIN), q_isr, RISING);
 
-  // // set up uart
-  // pinMode(uartOutPin, OUTPUT);
-  // digitalWrite(uartOutPin, HIGH);
-
   // error checking pulseSensor
   // if (!pulseSensor.begin()) {
   //   for (;;) {
@@ -81,10 +71,6 @@ void setup() {
   #else // receiver setup
   pinMode(GREEN_PIN, OUTPUT);
   pinMode(RED_PIN, OUTPUT);
-
-  // // set up uart
-  // pinMode(uartInPin, INPUT);
-  // attachInterrupt(uartInPin, uartReceive, CHANGE);
   #endif
 
   // run tests if applicable
@@ -115,38 +101,11 @@ void loop() {
     CURRENT_STATE = updateFSM(CURRENT_STATE);
     // delay(10);
     #else // receiver loop
-    // Serial.print("rBufStart = ");
-    // Serial.print(rBufStart);
-    // Serial.print(", rBufEnd = ");
-    // Serial.println(rBufEnd);
-    // if(rBufStart != rBufEnd){
-    //     Serial.println("got something in rBuf");
-    //     noInterrupts();
-    //     char received = rBuf[rBufStart];
-    //     rBufStart = (rBufStart + 1) % rsBufSize;
-    //     interrupts();
-    //     Serial.print("received: ");
-    //     Serial.println(received);
-    //     if(received == 'r'){
-    //       digitalWrite(GREEN_PIN, LOW);
-    //       digitalWrite(RED_PIN, HIGH);
-    //     } else if(received == 'g'){
-    //       digitalWrite(GREEN_PIN, HIGH);
-    //       digitalWrite(RED_PIN, LOW);
-    //     } else if(received == 'b'){
-    //       digitalWrite(GREEN_PIN, HIGH);
-    //       digitalWrite(RED_PIN, HIGH);
-    //     } else if(received == 'n'){
-    //       digitalWrite(GREEN_PIN, LOW);
-    //       digitalWrite(RED_PIN, LOW);
-    //     }
-    // }
     int received = Serial1.read();
     if (received != -1){
       Serial.print("received ");
       Serial.println((char) received);
     }
-    
     if((char) received == 'r'){
       digitalWrite(GREEN_PIN, LOW);
       digitalWrite(RED_PIN, HIGH);
@@ -208,6 +167,14 @@ state updateFSM(state curState) {
       threshHr = baseHr * (1.0 + thresh_percent);
       baseSkin = 1.0 * cumulativeSkin / qSampleCount;
       threshSkin = baseSkin * (1.0 + thresh_percent);
+      Serial.print("baseline finished, baseHr is ");
+      Serial.print(baseHr);
+      Serial.print(" and threshHr is ");
+      Serial.print(threshHr);
+      Serial.print("; baseSkin is ");
+      Serial.print(baseSkin);
+      Serial.print(" and threshSkin is ");
+      Serial.println(threshSkin);
       nextState = sDISP_LIE_RESULT;
     } else {
       nextState = sTEST_BASELINE;
@@ -226,6 +193,10 @@ state updateFSM(state curState) {
       resetButtons();
       testHr = 1.0 * cumulativeHr / qSampleCount;
       testSkin = 1.0 * cumulativeSkin / qSampleCount;
+      Serial.print("baseline finished, testHr is ");
+      Serial.print(testHr);
+      Serial.print(" and testSkin is ");
+      Serial.println(testSkin);
       nextState = sRECORD_LIE;
     } else {
       nextState = sTEST_LIE;

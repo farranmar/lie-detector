@@ -17,25 +17,6 @@ void q_isr(){
     qBut = 1;
 }
 
-void writeToRBuf(char c){
-  Serial.println("writing to rBuf, turning off interrupts");
-  noInterrupts();
-  if((rBufEnd + 1) % rsBufSize != rBufStart){
-    rBuf[rBufEnd] = (byte) c;
-    rBufEnd = (rBufEnd + 1) % rsBufSize;
-    Serial.print("just wrote to rBuf, so we have rBufStart = ");
-    Serial.print(rBufStart);
-    Serial.print(" and rBufEnd = ");
-    Serial.println(rBufEnd);
-  } else {
-    Serial.println("RBUF FULL");
-  }
-  interrupts();
-  Serial.println("finished writing to rBuf, turning interrupts back on");
-}
-
-
-
 #if defined(TESTING)
 // if testing, assume the heart rate is constantly 60 and the skin value is constantly 5
 void sampleData(){
