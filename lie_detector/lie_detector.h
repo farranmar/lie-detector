@@ -1,5 +1,5 @@
-// #define USE_ARDUINO_INTERRUPTS false
-// #include <PulseSensorPlayground.h>
+#define USE_ARDUINO_INTERRUPTS false
+#include <PulseSensorPlayground.h>
 // #define TESTING
 // #define WDT_TESTING
 
@@ -26,7 +26,7 @@ typedef enum {
 
 // fsm variables that we want to be truly global
 int cumulativeHr, cumulativeSkin, baseBut, qBut;
-// PulseSensorPlayground pulseSensor;
+PulseSensorPlayground pulseSensor;
 
 // isrs
 void q_isr();

@@ -2,7 +2,7 @@
 // #define SENDER;
 
 // what percent their heart rate/skin has to increase by to be considered a lie
-const double thresh_percent = 0.01;
+const double thresh_percent = 0.15;
 
 // FSM variables
 static double baseSkin, baseHr, threshSkin, threshHr, testSkin, testHr;
@@ -11,7 +11,6 @@ static char leds;
 
 void setup() {
   Serial.begin(9600);
-  // Serial.begin(115200);
   while (!Serial);
   Serial1.begin(9600);
 
@@ -48,26 +47,26 @@ void setup() {
   cumulativeSkin = 0;
   cumulativeHr = 0;
   qSampleCount = 0;
-  // pulseSensor.analogInput(HR_PIN);
-  // pulseSensor.setSerial(Serial);
-  // pulseSensor.setThreshold(THRESHOLD);
+  pulseSensor.analogInput(HR_PIN);
+  pulseSensor.setSerial(Serial);
+  pulseSensor.setThreshold(THRESHOLD);
   pinMode(BASE_BUT_PIN, INPUT);
   pinMode(Q_BUT_PIN, INPUT);
 
-  // Set up interrupts for buttons
+  // set up interrupts for buttons
   attachInterrupt(digitalPinToInterrupt(BASE_BUT_PIN), base_isr, RISING);
   attachInterrupt(digitalPinToInterrupt(Q_BUT_PIN), q_isr, RISING);
 
   // error checking pulseSensor
-  // if (!pulseSensor.begin()) {
-  //   for (;;) {
-  //     digitalWrite(LED_BUILTIN, LOW);
-  //     delay(50);
-  //     Serial.println("Pulse Sensor Initialization Failed!!!!!");
-  //     digitalWrite(LED_BUILTIN, HIGH);
-  //     delay(50);
-  //   }
-  // }
+  if (!pulseSensor.begin()) {
+    for (;;) {
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(50);
+      Serial.println("Pulse Sensor Initialization Failed!!!!!");
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(50);
+    }
+  }
   #else // receiver setup
   pinMode(GREEN_PIN, OUTPUT);
   pinMode(RED_PIN, OUTPUT);
@@ -83,12 +82,10 @@ void setup() {
 
 // sends a message to the receiver arduino to display the appropriate leds
 void updateLeds(char newLeds) {
-  // Serial.println("calling uartSend");
   if(leds != newLeds){ 
     leds = newLeds;
     Serial.print("sending ");
     Serial.println(leds);
-    // uartSend(leds);
     Serial1.write(leds);
   }
 }
@@ -128,7 +125,6 @@ state updateFSM(state curState) {
   switch(curState) {
   case sDISP_LIE_RESULT:
     if (baseBut == 0 and qBut == 0) { // transition 1-1
-      // Serial.println("1-1");
       nextState = sDISP_LIE_RESULT;
     } else if (baseBut == 1){ // transition 1-2
       Serial.println("1-2");
@@ -154,7 +150,6 @@ state updateFSM(state curState) {
     break;
   case sTEST_BASELINE:
     if (baseBut == 0 or qSampleCount <= 0) { // transition 2-2
-      // Serial.println("2-2");
       updateLeds('b');
       sampleData();
       qSampleCount += 1;
@@ -182,7 +177,6 @@ state updateFSM(state curState) {
     break;
   case sTEST_LIE:
     if(qBut == 0 or qSampleCount <= 0) { // transition 3-3
-      // Serial.println("3-3");
       updateLeds('b');
       sampleData();
       qSampleCount += 1;
