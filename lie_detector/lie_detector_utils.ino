@@ -18,14 +18,20 @@ void q_isr(){
 }
 
 void writeToRBuf(char c){
+  Serial.println("writing to rBuf, turning off interrupts");
   noInterrupts();
   if((rBufEnd + 1) % rsBufSize != rBufStart){
     rBuf[rBufEnd] = (byte) c;
     rBufEnd = (rBufEnd + 1) % rsBufSize;
+    Serial.print("just wrote to rBuf, so we have rBufStart = ");
+    Serial.print(rBufStart);
+    Serial.print(" and rBufEnd = ");
+    Serial.println(rBufEnd);
   } else {
     Serial.println("RBUF FULL");
   }
   interrupts();
+  Serial.println("finished writing to rBuf, turning interrupts back on");
 }
 
 
@@ -50,12 +56,14 @@ void sampleData(){
 void sampleData(){
     // if (pulseSensor.sawStartOfBeat()) {
     //   Serial.println("hey");
-    //   cumulativeHr = pulseSensor.getBeatsPerMinute();
-    //   cumulativeSkin = analogRead(SKIN_PIN);
+    //   cumulativeHr += pulseSensor.getBeatsPerMinute();
+    //   cumulativeSkin += analogRead(SKIN_PIN);
     //   Serial.print("hr: ");
     //   Serial.println(cumulativeHr);
     //   Serial.print("skin: ");
     //   Serial.println(cumulativeSkin);
     // }
+    cumulativeHr += random(50, 100);
+    cumulativeSkin += random(5, 200);
 }
 #endif

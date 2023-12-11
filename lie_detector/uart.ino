@@ -1,5 +1,3 @@
-// #include "lie_detector.h"
-
 /*
  * Manually wait for UART cycle
  */
@@ -12,7 +10,6 @@ inline void uartDelay(unsigned long ltime) {
  * Send byte via UART
  */
 void uartSend(byte B) {
-  
   // send start bit
   digitalWrite(uartOutPin, LOW);
   unsigned long lastClockTime = micros(); // record when pin was flipped
@@ -42,7 +39,6 @@ void uartSend(byte B) {
   uartDelay(micros());
   // back to high
   digitalWrite(uartOutPin, HIGH);
-  
 }
 
 /*
@@ -73,6 +69,9 @@ void uartReceive() {
   // compare computed and received parity
   // if match, put value at end of rBuf
   if(inPinVal == parity){
+    Serial.print("sticking somthg into rBuf (something being ");
+    Serial.print((char) B);
+    Serial.println(")");
     if((char) B == 'r' | (char) B == 'g' | (char) B == 'b' | (char) B == 'n'){
       writeToRBuf((char) B);
     }
