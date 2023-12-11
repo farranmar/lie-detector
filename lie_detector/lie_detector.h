@@ -1,5 +1,5 @@
-// #define USE_ARDUINO_INTERRUPTS false
-// #include <PulseSensorPlayground.h>
+#define USE_ARDUINO_INTERRUPTS false
+#include <PulseSensorPlayground.h>
 // #define TESTING
 // #define WDT_TESTING
 
@@ -16,15 +16,6 @@ const int SKIN_PIN = A5;
 // heart rate read threshold to avoid noise
 const int THRESHOLD = 450;
 
-// receive buffer for uart communication
-// we don't need a send buffer because we just send right away
-const int rsBufSize = 80;
-byte rBuf[rsBufSize];
-int rBufStart = 0;
-int rBufEnd = 0;
-
-const int UART_PERIOD_MICROS = 104;
-
 // typedef for fsm states
 typedef enum {
   sDISP_LIE_RESULT = 1,
@@ -35,12 +26,7 @@ typedef enum {
 
 // fsm variables that we want to be truly global
 int cumulativeHr, cumulativeSkin, baseBut, qBut;
-// PulseSensorPlayground pulseSensor;
-
-// uart helper functions
-void uartReceive();
-void uartSend(byte B);
-void writeToRBuf(char c);
+PulseSensorPlayground pulseSensor;
 
 // isrs
 void q_isr();
