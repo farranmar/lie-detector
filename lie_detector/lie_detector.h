@@ -25,7 +25,8 @@ typedef enum {
 } state;
 
 // fsm variables that we want to be truly global
-int cumulativeHr, cumulativeSkin, baseBut, qBut;
+int cumulativeHr, cumulativeSkin, 
+volatile int baseBut, qBut;
 PulseSensorPlayground pulseSensor;
 
 // isrs

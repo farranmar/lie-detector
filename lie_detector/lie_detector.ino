@@ -10,8 +10,10 @@ static int qSampleCount;
 static char leds;
 
 void setup() {
+  #ifdef SENDER
   Serial.begin(9600);
   while (!Serial);
+  #endif
   Serial1.begin(9600);
 
   // set up wdt (for both sender and recevier)
@@ -88,6 +90,11 @@ void updateLeds(char newLeds) {
     Serial.println(leds);
     Serial1.write(leds);
   }
+}
+
+void WDT_Handler() {
+  WDT->INTFLAG.reg = WDT_INTFLAG_EW;
+  Serial.println("WARNING WDT RESET IMMINENT");
 }
 
 void loop() {

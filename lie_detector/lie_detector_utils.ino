@@ -8,12 +8,12 @@ void resetButtons() {
 }
 
 void base_isr(){
-    Serial.println("base isr");
+    digitalWrite(LED_BUILTIN, HIGH);
     baseBut = 1;
 }
 
 void q_isr(){
-    Serial.println("q isr");
+    digitalWrite(LED_BUILTIN, HIGH);
     qBut = 1;
 }
 
