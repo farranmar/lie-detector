@@ -103,16 +103,16 @@ void loop() {
       Serial.print("received ");
       Serial.println((char) received);
     }
-    if((char) received == 'r'){
+    if ((char) received == 'r') { // lie
       digitalWrite(GREEN_PIN, LOW);
       digitalWrite(RED_PIN, HIGH);
-    } else if((char) received == 'g'){
+    } else if ((char) received == 'g') { // truth
       digitalWrite(GREEN_PIN, HIGH);
       digitalWrite(RED_PIN, LOW);
-    } else if((char) received == 'b'){
+    } else if ((char) received == 'b') { // questioning/baseline occurring
       digitalWrite(GREEN_PIN, HIGH);
       digitalWrite(RED_PIN, HIGH);
-    } else if((char) received == 'n'){
+    } else if ((char) received == 'n') { // not questioning
       digitalWrite(GREEN_PIN, LOW);
       digitalWrite(RED_PIN, LOW);
     }
